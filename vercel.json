@@ -1,5 +1,9 @@
 {
   "framework": "nextjs",
   "buildCommand": "npm run build",
-  "installCommand": "npm install"
+  "installCommand": "npm install",
+  "env": {
+    "NEXT_PUBLIC_APP_URL": "https://hostel-hrms.vercel.app",
+    "CORS_ALLOWED_ORIGINS": "https://hostel-hrms.vercel.app,http://localhost:3000"
+  }
 }

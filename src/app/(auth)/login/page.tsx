@@ -18,15 +18,14 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function signIn(loginEmail: string, loginPassword: string) {
     setLoading(true);
 
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: loginEmail, password: loginPassword }),
       });
 
       const data = await res.json();
@@ -46,12 +45,17 @@ export default function LoginPage() {
     }
   }
 
-  function quickLogin(demoEmail: string) {
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    await signIn(email, password);
+  }
+
+  async function quickLogin(demoEmail: string) {
     const user = DEMO_USERS.find((u) => u.email === demoEmail);
-    if (user) {
-      setEmail(user.email);
-      setPassword(user.password);
-    }
+    if (!user) return;
+    setEmail(user.email);
+    setPassword(user.password);
+    await signIn(user.email, user.password);
   }
 
   return (
@@ -78,7 +82,9 @@ export default function LoginPage() {
         <Card className="glass border-white/10 shadow-xl">
           <CardHeader>
             <CardTitle>Sign in</CardTitle>
-            <CardDescription>Access your role-based dashboard</CardDescription>
+            <CardDescription>
+              Use a demo role below, or sign in with Supabase / admin credentials
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -120,7 +126,7 @@ export default function LoginPage() {
 
             <div className="mt-6">
               <p className="mb-3 text-center text-xs text-muted-foreground">
-                Demo accounts (password: demo1234)
+                One-click demo login · password <span className="font-mono">demo1234</span>
               </p>
               <div className="grid grid-cols-2 gap-2">
                 {DEMO_USERS.map((user) => (

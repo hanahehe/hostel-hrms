@@ -1,7 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { jwtVerify } from "jose";
+import { SESSION_COOKIE } from "@/lib/auth/session";
+import { getJwtSecretKey } from "@/lib/auth/secret";
+import {
+  applyCorsHeaders,
+  applySecurityHeaders,
+  handleCorsPreflight,
+} from "@/lib/cors";
 
-const SESSION_COOKIE = "hostelhr_session";
 const PUBLIC_PATHS = ["/", "/login", "/api/auth/login", "/api/auth/logout"];
 
 const ROLE_ROUTES: Record<string, string[]> = {
@@ -12,18 +18,8 @@ const ROLE_ROUTES: Record<string, string[]> = {
 };
 
 async function verifyToken(token: string) {
-  const secret =
-    process.env.JWT_SECRET ||
-    process.env.NEXTAUTH_SECRET ||
-    (process.env.NODE_ENV === "development"
-      ? "dev-only-change-in-production-hostelhr-secret"
-      : undefined);
-  if (!secret) return null;
   try {
-    const { payload } = await jwtVerify(
-      token,
-      new TextEncoder().encode(secret)
-    );
+    const { payload } = await jwtVerify(token, getJwtSecretKey());
     return payload;
   } catch {
     return null;
@@ -39,6 +35,18 @@ export async function middleware(request: NextRequest) {
     pathname.includes(".")
   ) {
     return NextResponse.next();
+  }
+
+  // CORS for all API routes
+  if (pathname.startsWith("/api")) {
+    if (request.method === "OPTIONS") {
+      return handleCorsPreflight(request);
+    }
+
+    const response = NextResponse.next();
+    applyCorsHeaders(request, response);
+    applySecurityHeaders(response);
+    return response;
   }
 
   const isPublic = PUBLIC_PATHS.some(
@@ -83,10 +91,7 @@ export async function middleware(request: NextRequest) {
   }
 
   const response = NextResponse.next();
-  response.headers.set("X-Frame-Options", "DENY");
-  response.headers.set("X-Content-Type-Options", "nosniff");
-  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-
+  applySecurityHeaders(response);
   return response;
 }
 

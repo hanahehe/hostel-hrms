@@ -28,7 +28,11 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) and sign in with demo accounts (password: `demo1234`):
+Open [http://localhost:3000](http://localhost:3000) and sign in with demo accounts (password: `demo1234`), or click a role button for one-click login:
+
+**Vercel production:** set `JWT_SECRET` in Environment Variables (required). To use your own email, add `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_ROLE`, and `ADMIN_NAME`, or connect Supabase Auth.
+
+Demo accounts (password: `demo1234`):
 
 - `superadmin@hostelhr.com`
 - `admin@hostelhr.com`
@@ -94,11 +98,29 @@ src/
 
 ## Deploy to Vercel
 
+**Production URL:** [https://hostel-hrms.vercel.app](https://hostel-hrms.vercel.app)
+
 ```bash
 vercel
 ```
 
-Set environment variables in the Vercel dashboard (`JWT_SECRET`, Supabase keys).
+### Vercel environment variables
+
+Copy from `env.vercel.template` into **Vercel → Project → Settings → Environment Variables** (Production):
+
+| Variable | Value |
+|----------|--------|
+| `NEXT_PUBLIC_APP_URL` | `https://hostel-hrms.vercel.app` |
+| `CORS_ALLOWED_ORIGINS` | `https://hostel-hrms.vercel.app,http://localhost:3000` |
+| `JWT_SECRET` | Generate: `openssl rand -base64 32` |
+
+Optional: `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_ROLE`, `ADMIN_NAME`, Supabase keys.
+
+Redeploy after saving env vars.
+
+### CORS
+
+API routes (`/api/*`) allow credentialed requests from origins listed in `CORS_ALLOWED_ORIGINS` and `NEXT_PUBLIC_APP_URL`. Preflight `OPTIONS` requests are handled in middleware.
 
 ## License
 
